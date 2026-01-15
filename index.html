@@ -8,6 +8,7 @@
         :root { --primary: #2e7d32; --bg: #f4f7f6; --gray: #607d8b; --danger: #d32f2f; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 0; padding-bottom: 30px; }
         
+        /* Navigation en haut */
         .nav-bar { position: sticky; top: 0; width: 100%; background: white; display: flex; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 1000; }
         .nav-item { flex: 1; text-align: center; padding: 12px 0; color: var(--gray); font-weight: bold; cursor: pointer; font-size: 0.8rem; }
         .nav-item.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: #f1f8e9; }
@@ -25,9 +26,11 @@
         .btn { background: var(--primary); color: white; border: none; padding: 16px; width: 100%; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 1rem; }
         .btn-config-toggle { background: #eceff1; color: #455a64; border: none; padding: 10px; width: 100%; border-radius: 8px; font-size: 0.75rem; margin-bottom: 15px; font-weight: bold; }
         
+        /* Style Historique */
         .hist-item { background: white; padding: 12px; border-radius: 8px; margin-bottom: 10px; font-size: 0.85rem; border-left: 5px solid var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .hist-date { font-weight: bold; color: var(--primary); margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 4px; display: flex; justify-content: space-between; }
-        .hist-data { color: #444; white-space: pre-wrap; line-height: 1.5; font-family: monospace; }
+        .hist-date { font-weight: bold; color: var(--primary); margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 4px; }
+        .hist-data { color: #444; white-space: pre-wrap; line-height: 1.5; font-family: 'Segoe UI', sans-serif; }
+        .hist-data b { color: #000; }
 
         .config-panel { display: none; background: #fff; border: 2px dashed var(--primary); padding: 15px; border-radius: 12px; margin-bottom: 20px; }
         .config-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #eee; font-size: 0.85rem; }
@@ -46,7 +49,7 @@
 
     <div id="loading-overlay">
         <div style="font-size: 2rem; margin-bottom: 10px;">🔋</div>
-        <div id="loading-text">Chargement de l'unité...</div>
+        <div id="loading-text">Synchronisation...</div>
     </div>
 
     <div id="app-content" class="container" style="display:none;">
@@ -57,7 +60,7 @@
             <div id="config-panel" class="config-panel">
                 <h3 style="margin-top:0; font-size: 0.9rem;">AJOUTER UN POINT</h3>
                 <input type="text" id="cfg-bloc" placeholder="Bloc (ex: Digesteur 1)">
-                <input type="text" id="cfg-champ" placeholder="Nom (ex: FOS/TAC)">
+                <input type="text" id="cfg-champ" placeholder="Nom (ex: CH4)">
                 <select id="cfg-format">
                     <option value="number">Nombre</option>
                     <option value="checkbox">Case à cocher</option>
@@ -136,23 +139,35 @@
                 const logs = await resp.json();
                 container.innerHTML = "";
                 
-                // On affiche les 15 dernières analyses
-                logs.filter(l => l.rapport === 'anal').reverse().slice(0, 15).forEach(log => {
+                // On filtre sur le champ "rapport" (Analyses uniquement)
+                const analyses = logs.filter(l => (l.rapport === 'anal' || l.Rapport === 'anal'));
+                
+                if (analyses.length === 0) {
+                    container.innerHTML = "<div style='text-align:center; padding:20px; color:#666;'>Aucune analyse trouvée dans le Cloud.</div>";
+                    return;
+                }
+
+                analyses.reverse().slice(0, 15).forEach(log => {
                     const div = document.createElement('div');
                     div.className = 'hist-item';
                     let details = "";
+                    
+                    // On parcourt les clés pour afficher les valeurs
                     for (let [key, value] of Object.entries(log)) {
-                        if(!['rapport','date','action'].includes(key) && value !== "") {
-                            // On nettoie le nom de la colonne (enlève le bloc_ si besoin)
-                            details += `• ${key}: ${value}\n`;
+                        const technicalKeys = ['rapport','date','action','Rapport','Date','Action','données'];
+                        if(!technicalKeys.includes(key) && value !== "" && value !== null) {
+                            // On nettoie l'affichage du nom de la colonne
+                            let cleanKey = key.replace(/_/g, ' ');
+                            details += `• ${cleanKey} : <b>${value}</b>\n`;
                         }
                     }
-                    div.innerHTML = `<div class="hist-date"><span>📅 ${log.date.split(' ')[0]}</span> <small>${log.date.split(' ')[1] || ''}</small></div><div class="hist-data">${details}</div>`;
+
+                    const dateStr = log.date || log.Date || "Date inconnue";
+                    div.innerHTML = `<div class="hist-date">📅 ${dateStr}</div><div class="hist-data">${details}</div>`;
                     container.appendChild(div);
                 });
-                if(container.innerHTML === "") container.innerHTML = "Aucun historique d'analyse trouvé.";
             } catch (e) {
-                container.innerHTML = "Erreur de chargement. Vérifiez que l'onglet 'Données' existe sur Google Sheets.";
+                container.innerHTML = "<div style='text-align:center; padding:20px; color:red;'>Erreur de connexion au registre.</div>";
             }
         }
 
@@ -177,7 +192,7 @@
         }
 
         async function supprimerPoint(bloc, champ) {
-            if(confirm("Supprimer ce point de mesure ?")) {
+            if(confirm("Supprimer ce point ?")) {
                 configData = configData.filter(i => !(i.type === activeTab && i.bloc === bloc && i.champ === champ));
                 await synchroniserConfig();
             }
@@ -186,14 +201,22 @@
         async function envoyerDonnees() {
             const btn = document.getElementById('btn-send');
             let payload = { action: "data", rapport: activeTab, date: new Date().toLocaleString('fr-FR') };
+            let hasData = false;
+
             document.querySelectorAll('.data-input').forEach(i => {
-                const val = i.type === 'checkbox' ? (i.checked ? "OK" : "NON") : i.value;
-                if(val !== "") payload[i.dataset.group + "_" + i.dataset.label] = val;
+                const val = i.type === 'checkbox' ? (i.checked ? "OK" : "") : i.value;
+                if(val !== "") {
+                    payload[i.dataset.group + "_" + i.dataset.label] = val;
+                    hasData = true;
+                }
             });
-            btn.disabled = true; btn.innerText = "Transmission...";
+
+            if(!hasData) { alert("Veuillez saisir au moins une valeur."); return; }
+
+            btn.disabled = true; btn.innerText = "Envoi...";
             try {
                 await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-                alert("✅ Rapport transmis au Google Sheets !");
+                alert("✅ Rapport transmis !");
                 document.querySelectorAll('.data-input').forEach(i => i.type === 'checkbox' ? i.checked = false : i.value = "");
             } catch (e) { alert("❌ Erreur d'envoi"); } 
             finally { btn.disabled = false; btn.innerText = "💾 TRANSMETTRE LE RAPPORT"; }
