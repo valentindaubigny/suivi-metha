@@ -25,16 +25,15 @@
         .btn { background: var(--primary); color: white; border: none; padding: 16px; width: 100%; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 1rem; }
         .btn-config-toggle { background: #eceff1; color: #455a64; border: none; padding: 10px; width: 100%; border-radius: 8px; font-size: 0.75rem; margin-bottom: 15px; font-weight: bold; }
         
-        /* Historique */
-        .hist-item { background: white; padding: 10px; border-radius: 8px; margin-bottom: 10px; font-size: 0.85rem; border-left: 4px solid var(--gray); }
-        .hist-date { font-weight: bold; color: var(--primary); margin-bottom: 5px; }
-        .hist-data { color: #444; white-space: pre-wrap; line-height: 1.4; }
+        .hist-item { background: white; padding: 12px; border-radius: 8px; margin-bottom: 10px; font-size: 0.85rem; border-left: 5px solid var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .hist-date { font-weight: bold; color: var(--primary); margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 4px; display: flex; justify-content: space-between; }
+        .hist-data { color: #444; white-space: pre-wrap; line-height: 1.5; font-family: monospace; }
 
         .config-panel { display: none; background: #fff; border: 2px dashed var(--primary); padding: 15px; border-radius: 12px; margin-bottom: 20px; }
         .config-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #eee; font-size: 0.85rem; }
         .btn-remove { color: var(--danger); background: none; border: none; font-weight: bold; cursor: pointer; padding: 5px; }
         
-        #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 2000; }
+        #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 2000; }
     </style>
 </head>
 <body>
@@ -46,39 +45,39 @@
     </div>
 
     <div id="loading-overlay">
-        <div style="font-size: 1.5rem; color: var(--primary); margin-bottom: 10px;">⚙️</div>
-        <div id="loading-text">Synchronisation...</div>
+        <div style="font-size: 2rem; margin-bottom: 10px;">🔋</div>
+        <div id="loading-text">Chargement de l'unité...</div>
     </div>
 
     <div id="app-content" class="container" style="display:none;">
         <h1 id="current-tab-name">Quotidien</h1>
         
         <div id="tab-saisie">
-            <button class="btn-config-toggle" onclick="toggleConfig()">🛠 CONFIGURER / SUPPRIMER DES POINTS</button>
+            <button class="btn-config-toggle" onclick="toggleConfig()">🛠 PARAMÉTRER LES POINTS</button>
             <div id="config-panel" class="config-panel">
-                <h3 style="margin-top:0; font-size: 1rem;">Ajouter un point</h3>
-                <input type="text" id="cfg-bloc" placeholder="Nom du Bloc (ex: Moteur)">
-                <input type="text" id="cfg-champ" placeholder="Nom du Champ (ex: Heures)">
+                <h3 style="margin-top:0; font-size: 0.9rem;">AJOUTER UN POINT</h3>
+                <input type="text" id="cfg-bloc" placeholder="Bloc (ex: Digesteur 1)">
+                <input type="text" id="cfg-champ" placeholder="Nom (ex: FOS/TAC)">
                 <select id="cfg-format">
-                    <option value="number">Valeur (Nombre)</option>
+                    <option value="number">Nombre</option>
                     <option value="checkbox">Case à cocher</option>
-                    <option value="text">Texte (Commentaire)</option>
+                    <option value="text">Texte libre</option>
                 </select>
-                <button class="btn" onclick="ajouterPointVersGoogle()" style="background:#1976d2;">Ajouter au Cloud</button>
-                <div id="delete-list" style="margin-top:15px;"></div>
+                <button class="btn" onclick="ajouterPointVersGoogle()" style="background:#1976d2; padding:10px;">Enregistrer</button>
+                <div id="delete-list" style="margin-top:15px; font-size:0.8rem;"></div>
             </div>
             <div id="fields-container"></div>
-            <button id="btn-send" class="btn" onclick="envoyerDonnees()">💾 ENREGISTRER LE RAPPORT</button>
+            <button id="btn-send" class="btn" onclick="envoyerDonnees()">💾 TRANSMETTRE LE RAPPORT</button>
         </div>
 
         <div id="tab-historique" style="display:none;">
-            <button class="btn-config-toggle" onclick="chargerHistorique()">🔄 Rafraîchir l'historique</button>
+            <button class="btn-config-toggle" onclick="chargerHistorique()">🔄 RAFRAÎCHIR L'HISTORIQUE</button>
             <div id="hist-container"></div>
         </div>
     </div>
 
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwloOAuNVSmZTcCGkjvpvtFgAGyHADowOJD6Dl8NPVnmqxdcL7bsVmShJ9d7wu9NNEwOg/exec";
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz1pC-QcbeF1j0e8G0JRSsG6SQiY_eJ0jRXIcoVwXdKDVhALtvOPzFKgzRzqLme69HVPA/exec";
         let activeTab = 'quot';
         let configData = [];
 
@@ -99,7 +98,7 @@
             const container = document.getElementById('fields-container');
             const delContainer = document.getElementById('delete-list');
             container.innerHTML = "";
-            delContainer.innerHTML = "<strong>Supprimer des points :</strong>";
+            delContainer.innerHTML = "<strong>Supprimer :</strong>";
             
             if(activeTab === 'hist') return;
 
@@ -131,26 +130,29 @@
 
         async function chargerHistorique() {
             const container = document.getElementById('hist-container');
-            container.innerHTML = "Chargement des dernières données...";
+            container.innerHTML = "<div style='text-align:center; padding:20px;'>Lecture du registre...</div>";
             try {
-                // On ajoute un paramètre à l'URL pour dire au script qu'on veut les données
                 const resp = await fetch(SCRIPT_URL + "?getLogs=true");
                 const logs = await resp.json();
                 container.innerHTML = "";
                 
-                // On filtre pour n'avoir que les rapports de type "anal" (Analyses)
+                // On affiche les 15 dernières analyses
                 logs.filter(l => l.rapport === 'anal').reverse().slice(0, 15).forEach(log => {
                     const div = document.createElement('div');
                     div.className = 'hist-item';
                     let details = "";
                     for (let [key, value] of Object.entries(log)) {
-                        if(!['rapport','date','action'].includes(key)) details += `${key}: ${value}\n`;
+                        if(!['rapport','date','action'].includes(key) && value !== "") {
+                            // On nettoie le nom de la colonne (enlève le bloc_ si besoin)
+                            details += `• ${key}: ${value}\n`;
+                        }
                     }
-                    div.innerHTML = `<div class="hist-date">📅 ${log.date}</div><div class="hist-data">${details}</div>`;
+                    div.innerHTML = `<div class="hist-date"><span>📅 ${log.date.split(' ')[0]}</span> <small>${log.date.split(' ')[1] || ''}</small></div><div class="hist-data">${details}</div>`;
                     container.appendChild(div);
                 });
+                if(container.innerHTML === "") container.innerHTML = "Aucun historique d'analyse trouvé.";
             } catch (e) {
-                container.innerHTML = "Impossible de charger l'historique. Vérifiez votre connexion.";
+                container.innerHTML = "Erreur de chargement. Vérifiez que l'onglet 'Données' existe sur Google Sheets.";
             }
         }
 
@@ -160,7 +162,7 @@
                 await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: "saveConfig", config: configData }) });
                 localStorage.setItem('metha_config_backup', JSON.stringify(configData));
                 render();
-            } catch (e) { alert("Erreur synchro"); }
+            } catch (e) { alert("Erreur synchro Cloud"); }
             finally { document.getElementById('loading-overlay').style.display = 'none'; }
         }
 
@@ -171,10 +173,11 @@
             if(!bloc || !champ) return;
             configData.push({ type: activeTab, bloc, champ, format });
             await synchroniserConfig();
+            document.getElementById('cfg-champ').value = "";
         }
 
         async function supprimerPoint(bloc, champ) {
-            if(confirm("Supprimer ce point ?")) {
+            if(confirm("Supprimer ce point de mesure ?")) {
                 configData = configData.filter(i => !(i.type === activeTab && i.bloc === bloc && i.champ === champ));
                 await synchroniserConfig();
             }
@@ -182,29 +185,29 @@
 
         async function envoyerDonnees() {
             const btn = document.getElementById('btn-send');
-            let payload = { action: "data", rapport: activeTab, date: new Date().toLocaleString() };
+            let payload = { action: "data", rapport: activeTab, date: new Date().toLocaleString('fr-FR') };
             document.querySelectorAll('.data-input').forEach(i => {
-                payload[i.dataset.group + "_" + i.dataset.label] = i.type === 'checkbox' ? i.checked : i.value;
+                const val = i.type === 'checkbox' ? (i.checked ? "OK" : "NON") : i.value;
+                if(val !== "") payload[i.dataset.group + "_" + i.dataset.label] = val;
             });
-            btn.disabled = true;
+            btn.disabled = true; btn.innerText = "Transmission...";
             try {
                 await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-                alert("✅ Envoyé !");
+                alert("✅ Rapport transmis au Google Sheets !");
                 document.querySelectorAll('.data-input').forEach(i => i.type === 'checkbox' ? i.checked = false : i.value = "");
-            } catch (e) { alert("❌ Erreur"); } 
-            finally { btn.disabled = false; }
+            } catch (e) { alert("❌ Erreur d'envoi"); } 
+            finally { btn.disabled = false; btn.innerText = "💾 TRANSMETTRE LE RAPPORT"; }
         }
 
         function switchTab(t) {
             activeTab = t;
-            document.getElementById('nav-quot').classList.toggle('active', t === 'quot');
-            document.getElementById('nav-anal').classList.toggle('active', t === 'anal');
-            document.getElementById('nav-hist').classList.toggle('active', t === 'hist');
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.getElementById('nav-' + t).classList.add('active');
             
             if(t === 'hist') {
                 document.getElementById('tab-saisie').style.display = 'none';
                 document.getElementById('tab-historique').style.display = 'block';
-                document.getElementById('current-tab-name').innerText = "📜 Historique Analyses";
+                document.getElementById('current-tab-name').innerText = "📜 Historique Labo";
                 chargerHistorique();
             } else {
                 document.getElementById('tab-saisie').style.display = 'block';
