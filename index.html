@@ -6,37 +6,40 @@
     <title>Métha-Sync Pro</title>
     <style>
         :root { --primary: #2e7d32; --bg: #f4f7f6; --gray: #607d8b; --danger: #d32f2f; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 0; padding-bottom: 30px; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 30px; }
         
-        /* Navigation en haut */
         .nav-bar { position: sticky; top: 0; width: 100%; background: white; display: flex; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 1000; }
         .nav-item { flex: 1; text-align: center; padding: 12px 0; color: var(--gray); font-weight: bold; cursor: pointer; font-size: 0.8rem; }
         .nav-item.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: #f1f8e9; }
 
         .container { padding: 15px; }
         h1 { color: var(--primary); text-align: center; font-size: 1.1rem; margin: 15px 0; text-transform: uppercase; }
+        
+        /* Saisie */
         .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 15px; border-top: 4px solid var(--primary); }
         .group-title { font-weight: bold; color: var(--primary); margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; display: block; }
-        
         .row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-        label { flex: 1; font-size: 0.95rem; color: #333; margin-right: 10px; }
+        label { flex: 1; font-size: 0.95rem; color: #333; }
         input[type="number"], input[type="text"] { width: 90px; padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 1rem; }
         input[type="checkbox"] { width: 30px; height: 30px; accent-color: var(--primary); }
 
-        .btn { background: var(--primary); color: white; border: none; padding: 16px; width: 100%; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 1rem; }
+        /* Tableau Historique */
+        .table-wrapper { background: white; border-radius: 12px; overflow-x: auto; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-top: 10px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; min-width: 500px; }
+        .head-bloc { background: var(--primary); color: white; text-align: center; padding: 8px; border: 1px solid #1b5e20; font-size: 0.75rem; text-transform: uppercase; }
+        .head-champ { background: #e8f5e9; color: var(--primary); padding: 8px; border: 1px solid #ddd; font-weight: bold; }
+        td { padding: 10px 8px; border: 1px solid #eee; text-align: center; white-space: nowrap; }
+        .date-cell { font-weight: bold; background: #f5f5f5; position: sticky; left: 0; z-index: 10; border-right: 2px solid #ddd; }
+
+        /* Configuration */
+        .config-panel { display:none; background:white; padding:15px; border-radius:12px; border:2px dashed var(--primary); margin-bottom:20px; }
+        .config-list-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #eee; font-size: 0.85rem; }
+        .btn-del { color: var(--danger); background: none; border: none; font-weight: bold; cursor: pointer; padding: 5px 10px; }
+
+        .btn { background: var(--primary); color: white; border: none; padding: 16px; width: 100%; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .btn-config-toggle { background: #eceff1; color: #455a64; border: none; padding: 10px; width: 100%; border-radius: 8px; font-size: 0.75rem; margin-bottom: 15px; font-weight: bold; }
         
-        /* Style Historique */
-        .hist-item { background: white; padding: 12px; border-radius: 8px; margin-bottom: 10px; font-size: 0.85rem; border-left: 5px solid var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .hist-date { font-weight: bold; color: var(--primary); margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 4px; }
-        .hist-data { color: #444; white-space: pre-wrap; line-height: 1.5; font-family: 'Segoe UI', sans-serif; }
-        .hist-data b { color: #000; }
-
-        .config-panel { display: none; background: #fff; border: 2px dashed var(--primary); padding: 15px; border-radius: 12px; margin-bottom: 20px; }
-        .config-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #eee; font-size: 0.85rem; }
-        .btn-remove { color: var(--danger); background: none; border: none; font-weight: bold; cursor: pointer; padding: 5px; }
-        
-        #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 2000; }
+        #loading-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:white; display:flex; justify-content:center; align-items:center; z-index:2000; }
     </style>
 </head>
 <body>
@@ -48,34 +51,41 @@
     </div>
 
     <div id="loading-overlay">
-        <div style="font-size: 2rem; margin-bottom: 10px;">🔋</div>
-        <div id="loading-text">Synchronisation...</div>
+        <div style="text-align:center">⚙️<br>Chargement...</div>
     </div>
 
     <div id="app-content" class="container" style="display:none;">
         <h1 id="current-tab-name">Quotidien</h1>
         
         <div id="tab-saisie">
-            <button class="btn-config-toggle" onclick="toggleConfig()">🛠 PARAMÉTRER LES POINTS</button>
+            <button class="btn-config-toggle" onclick="toggleConfig()">🛠 GÉRER LES POINTS DE MESURE</button>
+            
             <div id="config-panel" class="config-panel">
-                <h3 style="margin-top:0; font-size: 0.9rem;">AJOUTER UN POINT</h3>
-                <input type="text" id="cfg-bloc" placeholder="Bloc (ex: Digesteur 1)">
-                <input type="text" id="cfg-champ" placeholder="Nom (ex: CH4)">
-                <select id="cfg-format">
-                    <option value="number">Nombre</option>
-                    <option value="checkbox">Case à cocher</option>
-                    <option value="text">Texte libre</option>
+                <h3 style="margin:0 0 10px 0; font-size: 0.9rem;">AJOUTER UN POINT</h3>
+                <input type="text" id="cfg-bloc" placeholder="Nom du Bloc (ex: Digesteur 1)" style="width:100%; margin-bottom:5px; padding:10px; border:1px solid #ccc; border-radius:5px; box-sizing: border-box;">
+                <input type="text" id="cfg-champ" placeholder="Nom du Champ (ex: pH)" style="width:100%; margin-bottom:5px; padding:10px; border:1px solid #ccc; border-radius:5px; box-sizing: border-box;">
+                <select id="cfg-format" style="width:100%; margin-bottom:10px; padding:10px; border:1px solid #ccc; border-radius:5px;">
+                    <option value="number">Nombre (Labo / Relevé)</option>
+                    <option value="checkbox">Case à cocher (Checklist)</option>
                 </select>
-                <button class="btn" onclick="ajouterPointVersGoogle()" style="background:#1976d2; padding:10px;">Enregistrer</button>
-                <div id="delete-list" style="margin-top:15px; font-size:0.8rem;"></div>
+                <button class="btn" onclick="ajouterPointVersGoogle()" style="background:#1976d2; padding:10px;">AJOUTER AU CLOUD</button>
+                
+                <h3 style="margin:20px 0 10px 0; font-size: 0.9rem; color: var(--danger); border-top: 1px solid #eee; padding-top:10px;">SUPPRIMER UN POINT</h3>
+                <div id="config-delete-list"></div>
             </div>
+
             <div id="fields-container"></div>
             <button id="btn-send" class="btn" onclick="envoyerDonnees()">💾 TRANSMETTRE LE RAPPORT</button>
         </div>
 
         <div id="tab-historique" style="display:none;">
-            <button class="btn-config-toggle" onclick="chargerHistorique()">🔄 RAFRAÎCHIR L'HISTORIQUE</button>
-            <div id="hist-container"></div>
+            <div class="table-wrapper">
+                <table>
+                    <thead id="hist-thead"></thead>
+                    <tbody id="hist-tbody"></tbody>
+                </table>
+            </div>
+            <p style="font-size: 0.7rem; color: #999; text-align: center; margin-top: 10px;">(Glissez le tableau vers la droite pour voir les valeurs)</p>
         </div>
     </div>
 
@@ -88,10 +98,7 @@
             try {
                 const resp = await fetch(SCRIPT_URL);
                 configData = await resp.json();
-                localStorage.setItem('metha_config_backup', JSON.stringify(configData));
-            } catch (e) {
-                configData = JSON.parse(localStorage.getItem('metha_config_backup')) || [];
-            }
+            } catch (e) { configData = []; }
             render();
             document.getElementById('loading-overlay').style.display = 'none';
             document.getElementById('app-content').style.display = 'block';
@@ -99,10 +106,10 @@
 
         function render() {
             const container = document.getElementById('fields-container');
-            const delContainer = document.getElementById('delete-list');
+            const delList = document.getElementById('config-delete-list');
             container.innerHTML = "";
-            delContainer.innerHTML = "<strong>Supprimer :</strong>";
-            
+            delList.innerHTML = "";
+
             if(activeTab === 'hist') return;
 
             document.getElementById('current-tab-name').innerText = activeTab === 'quot' ? "📅 Relevés Quotidiens" : "🧪 Analyses Labo";
@@ -113,71 +120,91 @@
                 const card = document.createElement('div');
                 card.className = 'card';
                 card.innerHTML = `<span class="group-title">${groupName}</span>`;
+                
                 filtered.filter(i => i.bloc === groupName).forEach(item => {
                     const row = document.createElement('div');
                     row.className = 'row';
-                    const inputHTML = item.format === 'checkbox' 
-                        ? `<input type="checkbox" class="data-input" data-group="${item.bloc}" data-label="${item.champ}">`
-                        : `<input type="${item.format}" class="data-input" data-group="${item.bloc}" data-label="${item.champ}" placeholder="0">`;
-                    row.innerHTML = `<label>${item.champ}</label>${inputHTML}`;
+                    row.innerHTML = `<label>${item.champ}</label>
+                        <input type="${item.format}" class="data-input" data-group="${item.bloc}" data-label="${item.champ}">`;
                     card.appendChild(row);
 
                     const delItem = document.createElement('div');
-                    delItem.className = 'config-item';
-                    delItem.innerHTML = `<span>${item.bloc} > ${item.champ}</span><button class="btn-remove" onclick="supprimerPoint('${item.bloc}', '${item.champ}')">❌</button>`;
-                    delContainer.appendChild(delItem);
+                    delItem.className = 'config-list-item';
+                    delItem.innerHTML = `<span><b>${item.bloc}</b> : ${item.champ}</span> 
+                                         <button class="btn-del" onclick="supprimerPoint('${item.bloc}', '${item.champ}')">❌</button>`;
+                    delList.appendChild(delItem);
                 });
                 container.appendChild(card);
             });
         }
 
+        // --- FONCTION DATE NETTOYÉE ---
+        function formaterDate(str) {
+            if(!str) return "-";
+            // On prend la première partie avant l'espace (pour JJ/MM/AAAA)
+            // Ou on nettoie le format ISO de Google (AAAA-MM-JJThh:mm:ssZ)
+            let d = str.split(' ')[0];
+            if(d.includes('T')) d = d.split('T')[0].split('-').reverse().join('/');
+            return d;
+        }
+
         async function chargerHistorique() {
-            const container = document.getElementById('hist-container');
-            container.innerHTML = "<div style='text-align:center; padding:20px;'>Lecture du registre...</div>";
+            const thead = document.getElementById('hist-thead');
+            const tbody = document.getElementById('hist-tbody');
+            tbody.innerHTML = "<tr><td colspan='10' style='padding:20px;'>Chargement des données...</td></tr>";
+            
             try {
                 const resp = await fetch(SCRIPT_URL + "?getLogs=true");
                 const logs = await resp.json();
-                container.innerHTML = "";
-                
-                // On filtre sur le champ "rapport" (Analyses uniquement)
-                const analyses = logs.filter(l => (l.rapport === 'anal' || l.Rapport === 'anal'));
-                
+                const analyses = logs.filter(l => (l.rapport === 'anal' || l.Rapport === 'anal')).reverse().slice(0, 15);
+
                 if (analyses.length === 0) {
-                    container.innerHTML = "<div style='text-align:center; padding:20px; color:#666;'>Aucune analyse trouvée dans le Cloud.</div>";
+                    tbody.innerHTML = "<tr><td colspan='10'>Aucune analyse trouvée.</td></tr>";
                     return;
                 }
 
-                analyses.reverse().slice(0, 15).forEach(log => {
-                    const div = document.createElement('div');
-                    div.className = 'hist-item';
-                    let details = "";
-                    
-                    // On parcourt les clés pour afficher les valeurs
-                    for (let [key, value] of Object.entries(log)) {
-                        const technicalKeys = ['rapport','date','action','Rapport','Date','Action','données'];
-                        if(!technicalKeys.includes(key) && value !== "" && value !== null) {
-                            // On nettoie l'affichage du nom de la colonne
-                            let cleanKey = key.replace(/_/g, ' ');
-                            details += `• ${cleanKey} : <b>${value}</b>\n`;
+                let structure = {};
+                analyses.forEach(log => {
+                    Object.keys(log).forEach(key => {
+                        if(key.includes('_')) {
+                            let [bloc, champ] = key.split('_');
+                            if(!structure[bloc]) structure[bloc] = new Set();
+                            structure[bloc].add(champ);
                         }
-                    }
-
-                    const dateStr = log.date || log.Date || "Date inconnue";
-                    div.innerHTML = `<div class="hist-date">📅 ${dateStr}</div><div class="hist-data">${details}</div>`;
-                    container.appendChild(div);
+                    });
                 });
-            } catch (e) {
-                container.innerHTML = "<div style='text-align:center; padding:20px; color:red;'>Erreur de connexion au registre.</div>";
-            }
+
+                let htmlHead1 = `<tr><th rowspan="2" class="head-champ date-cell">DATE</th>`;
+                let htmlHead2 = `<tr>`;
+                let columnOrder = [];
+
+                Object.keys(structure).forEach(bloc => {
+                    let champs = Array.from(structure[bloc]);
+                    htmlHead1 += `<th colspan="${champs.length}" class="head-bloc">${bloc}</th>`;
+                    champs.forEach(champ => {
+                        htmlHead2 += `<th class="head-champ">${champ}</th>`;
+                        columnOrder.push(`${bloc}_${champ}`);
+                    });
+                });
+                
+                thead.innerHTML = htmlHead1 + "</tr>" + htmlHead2 + "</tr>";
+
+                tbody.innerHTML = analyses.map(log => {
+                    // Application du format propre ici
+                    let datePropre = formaterDate(log.date || log.Date);
+                    return `<tr><td class="date-cell">${datePropre}</td>` + 
+                           columnOrder.map(col => `<td>${log[col] || '-'}</td>`).join('') + `</tr>`;
+                }).join('');
+
+            } catch (e) { tbody.innerHTML = "<tr><td colspan='10'>Erreur réseau.</td></tr>"; }
         }
 
         async function synchroniserConfig() {
             document.getElementById('loading-overlay').style.display = 'flex';
             try {
                 await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: "saveConfig", config: configData }) });
-                localStorage.setItem('metha_config_backup', JSON.stringify(configData));
                 render();
-            } catch (e) { alert("Erreur synchro Cloud"); }
+            } catch (e) { alert("Erreur Cloud."); }
             finally { document.getElementById('loading-overlay').style.display = 'none'; }
         }
 
@@ -192,7 +219,7 @@
         }
 
         async function supprimerPoint(bloc, champ) {
-            if(confirm("Supprimer ce point ?")) {
+            if(confirm(`Supprimer "${champ}" ?`)) {
                 configData = configData.filter(i => !(i.type === activeTab && i.bloc === bloc && i.champ === champ));
                 await synchroniserConfig();
             }
@@ -200,33 +227,23 @@
 
         async function envoyerDonnees() {
             const btn = document.getElementById('btn-send');
-            let payload = { action: "data", rapport: activeTab, date: new Date().toLocaleString('fr-FR') };
+            let payload = { action: "data", rapport: activeTab, date: new Date().toLocaleDateString('fr-FR') };
             let hasData = false;
-
             document.querySelectorAll('.data-input').forEach(i => {
                 const val = i.type === 'checkbox' ? (i.checked ? "OK" : "") : i.value;
-                if(val !== "") {
-                    payload[i.dataset.group + "_" + i.dataset.label] = val;
-                    hasData = true;
-                }
+                if(val !== "") { payload[i.dataset.group + "_" + i.dataset.label] = val; hasData = true; }
             });
-
-            if(!hasData) { alert("Veuillez saisir au moins une valeur."); return; }
-
-            btn.disabled = true; btn.innerText = "Envoi...";
-            try {
-                await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-                alert("✅ Rapport transmis !");
-                document.querySelectorAll('.data-input').forEach(i => i.type === 'checkbox' ? i.checked = false : i.value = "");
-            } catch (e) { alert("❌ Erreur d'envoi"); } 
-            finally { btn.disabled = false; btn.innerText = "💾 TRANSMETTRE LE RAPPORT"; }
+            if(!hasData) return alert("Saisissez une valeur.");
+            btn.disabled = true;
+            await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+            alert("✅ Envoyé !");
+            location.reload();
         }
 
         function switchTab(t) {
             activeTab = t;
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             document.getElementById('nav-' + t).classList.add('active');
-            
             if(t === 'hist') {
                 document.getElementById('tab-saisie').style.display = 'none';
                 document.getElementById('tab-historique').style.display = 'block';
