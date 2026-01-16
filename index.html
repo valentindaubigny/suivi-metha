@@ -7,38 +7,23 @@
     <style>
         :root { --primary: #2e7d32; --bg: #f4f7f6; --gray: #607d8b; --danger: #d32f2f; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 30px; }
-        
         .nav-bar { position: sticky; top: 0; width: 100%; background: white; display: flex; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 1000; }
         .nav-item { flex: 1; text-align: center; padding: 12px 0; color: var(--gray); font-weight: bold; cursor: pointer; font-size: 0.8rem; }
         .nav-item.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: #f1f8e9; }
-
         .container { padding: 15px; }
         h1 { color: var(--primary); text-align: center; font-size: 1.1rem; margin: 15px 0; text-transform: uppercase; }
-        
-        /* Saisie */
         .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 15px; border-top: 4px solid var(--primary); }
         .group-title { font-weight: bold; color: var(--primary); margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; display: block; }
         .row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-        label { flex: 1; font-size: 0.95rem; color: #333; }
         input[type="number"], input[type="text"] { width: 90px; padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 1rem; }
         input[type="checkbox"] { width: 30px; height: 30px; accent-color: var(--primary); }
-
-        /* Tableau Historique */
-        .table-wrapper { background: white; border-radius: 12px; overflow-x: auto; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-top: 10px; }
+        .table-wrapper { background: white; border-radius: 12px; overflow-x: auto; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         table { width: 100%; border-collapse: collapse; font-size: 0.8rem; min-width: 500px; }
-        .head-bloc { background: var(--primary); color: white; text-align: center; padding: 8px; border: 1px solid #1b5e20; font-size: 0.75rem; text-transform: uppercase; }
+        .head-bloc { background: var(--primary); color: white; text-align: center; padding: 8px; border: 1px solid #1b5e20; }
         .head-champ { background: #e8f5e9; color: var(--primary); padding: 8px; border: 1px solid #ddd; font-weight: bold; }
-        td { padding: 10px 8px; border: 1px solid #eee; text-align: center; white-space: nowrap; }
+        td { padding: 10px 8px; border: 1px solid #eee; text-align: center; }
         .date-cell { font-weight: bold; background: #f5f5f5; position: sticky; left: 0; z-index: 10; border-right: 2px solid #ddd; }
-
-        /* Configuration */
-        .config-panel { display:none; background:white; padding:15px; border-radius:12px; border:2px dashed var(--primary); margin-bottom:20px; }
-        .config-list-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #eee; font-size: 0.85rem; }
-        .btn-del { color: var(--danger); background: none; border: none; font-weight: bold; cursor: pointer; padding: 5px 10px; }
-
         .btn { background: var(--primary); color: white; border: none; padding: 16px; width: 100%; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .btn-config-toggle { background: #eceff1; color: #455a64; border: none; padding: 10px; width: 100%; border-radius: 8px; font-size: 0.75rem; margin-bottom: 15px; font-weight: bold; }
-        
         #loading-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:white; display:flex; justify-content:center; align-items:center; z-index:2000; }
     </style>
 </head>
@@ -50,118 +35,112 @@
         <div id="nav-hist" class="nav-item" onclick="switchTab('hist')">📜 Historique</div>
     </div>
 
-    <div id="loading-overlay">
-        <div style="text-align:center">⚙️<br>Chargement...</div>
-    </div>
+    <div id="loading-overlay"><div>⚙️ Chargement...</div></div>
 
     <div id="app-content" class="container" style="display:none;">
         <h1 id="current-tab-name">Quotidien</h1>
-        
         <div id="tab-saisie">
-            <button class="btn-config-toggle" onclick="toggleConfig()">🛠 GÉRER LES POINTS DE MESURE</button>
-            
-            <div id="config-panel" class="config-panel">
-                <h3 style="margin:0 0 10px 0; font-size: 0.9rem;">AJOUTER UN POINT</h3>
-                <input type="text" id="cfg-bloc" placeholder="Nom du Bloc (ex: Digesteur 1)" style="width:100%; margin-bottom:5px; padding:10px; border:1px solid #ccc; border-radius:5px; box-sizing: border-box;">
-                <input type="text" id="cfg-champ" placeholder="Nom du Champ (ex: pH)" style="width:100%; margin-bottom:5px; padding:10px; border:1px solid #ccc; border-radius:5px; box-sizing: border-box;">
-                <select id="cfg-format" style="width:100%; margin-bottom:10px; padding:10px; border:1px solid #ccc; border-radius:5px;">
-                    <option value="number">Nombre (Labo / Relevé)</option>
-                    <option value="checkbox">Case à cocher (Checklist)</option>
+            <button style="background:#eceff1; border:none; padding:10px; width:100%; border-radius:8px; font-size:0.75rem; margin-bottom:15px; font-weight:bold;" onclick="toggleConfig()">🛠 GÉRER LES POINTS</button>
+            <div id="config-panel" style="display:none; background:white; padding:15px; border-radius:12px; border:2px dashed var(--primary); margin-bottom:20px;">
+                <input type="text" id="cfg-bloc" placeholder="Bloc" style="width:100%; margin-bottom:5px; padding:10px; box-sizing:border-box;">
+                <input type="text" id="cfg-champ" placeholder="Nom" style="width:100%; margin-bottom:5px; padding:10px; box-sizing:border-box;">
+                <select id="cfg-format" style="width:100%; margin-bottom:10px; padding:10px;">
+                    <option value="number">Nombre</option>
+                    <option value="checkbox">Case à cocher</option>
                 </select>
-                <button class="btn" onclick="ajouterPointVersGoogle()" style="background:#1976d2; padding:10px;">AJOUTER AU CLOUD</button>
-                
-                <h3 style="margin:20px 0 10px 0; font-size: 0.9rem; color: var(--danger); border-top: 1px solid #eee; padding-top:10px;">SUPPRIMER UN POINT</h3>
-                <div id="config-delete-list"></div>
+                <button class="btn" onclick="ajouterPointVersGoogle()">AJOUTER</button>
+                <div id="config-delete-list" style="margin-top:15px;"></div>
             </div>
-
             <div id="fields-container"></div>
             <button id="btn-send" class="btn" onclick="envoyerDonnees()">💾 TRANSMETTRE LE RAPPORT</button>
         </div>
 
         <div id="tab-historique" style="display:none;">
             <div class="table-wrapper">
-                <table>
-                    <thead id="hist-thead"></thead>
-                    <tbody id="hist-tbody"></tbody>
-                </table>
+                <table><thead id="hist-thead"></thead><tbody id="hist-tbody"></tbody></table>
             </div>
-            <p style="font-size: 0.7rem; color: #999; text-align: center; margin-top: 10px;">(Glissez le tableau vers la droite pour voir les valeurs)</p>
         </div>
     </div>
 
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz1pC-QcbeF1j0e8G0JRSsG6SQiY_eJ0jRXIcoVwXdKDVhALtvOPzFKgzRzqLme69HVPA/exec";
-        let activeTab = 'quot';
-        let configData = [];
+        let activeTab = 'quot', configData = [];
 
         async function init() {
-            try {
-                const resp = await fetch(SCRIPT_URL);
-                configData = await resp.json();
-            } catch (e) { configData = []; }
+            try { const resp = await fetch(SCRIPT_URL); configData = await resp.json(); } catch (e) { configData = []; }
             render();
+            chargerDrafts(); // Restaurer les brouillons au démarrage
             document.getElementById('loading-overlay').style.display = 'none';
             document.getElementById('app-content').style.display = 'block';
         }
 
         function render() {
-            const container = document.getElementById('fields-container');
-            const delList = document.getElementById('config-delete-list');
-            container.innerHTML = "";
-            delList.innerHTML = "";
-
+            const container = document.getElementById('fields-container'), delList = document.getElementById('config-delete-list');
+            container.innerHTML = ""; delList.innerHTML = "";
             if(activeTab === 'hist') return;
-
-            document.getElementById('current-tab-name').innerText = activeTab === 'quot' ? "📅 Relevés Quotidiens" : "🧪 Analyses Labo";
+            document.getElementById('current-tab-name').innerText = activeTab === 'quot' ? "📅 Relevés" : "🧪 Analyses Labo";
             const filtered = configData.filter(i => i.type === activeTab);
             const groups = [...new Set(filtered.map(i => i.bloc))];
-
+            
             groups.forEach(groupName => {
                 const card = document.createElement('div');
                 card.className = 'card';
                 card.innerHTML = `<span class="group-title">${groupName}</span>`;
-                
                 filtered.filter(i => i.bloc === groupName).forEach(item => {
-                    const row = document.createElement('div');
-                    row.className = 'row';
-                    row.innerHTML = `<label>${item.champ}</label>
-                        <input type="${item.format}" class="data-input" data-group="${item.bloc}" data-label="${item.champ}">`;
-                    card.appendChild(row);
-
-                    const delItem = document.createElement('div');
-                    delItem.className = 'config-list-item';
-                    delItem.innerHTML = `<span><b>${item.bloc}</b> : ${item.champ}</span> 
-                                         <button class="btn-del" onclick="supprimerPoint('${item.bloc}', '${item.champ}')">❌</button>`;
-                    delList.appendChild(delItem);
+                    const id = `input_${item.type}_${item.bloc}_${item.champ}`;
+                    card.innerHTML += `<div class="row">
+                        <label>${item.champ}</label>
+                        <input type="${item.format}" id="${id}" class="data-input" 
+                               data-group="${item.bloc}" data-label="${item.champ}" 
+                               oninput="sauvegarderDraft('${id}')" onchange="sauvegarderDraft('${id}')">
+                    </div>`;
+                    delList.innerHTML += `<div style="display:flex; justify-content:space-between; padding:5px 0; font-size:0.8rem; border-bottom:1px solid #eee;"><span>${item.bloc}: ${item.champ}</span><button onclick="supprimerPoint('${item.bloc}','${item.champ}')" style="color:red; border:none; background:none;">❌</button></div>`;
                 });
                 container.appendChild(card);
             });
+            chargerDrafts(); // Re-remplir les champs après le rendu de l'onglet
         }
 
-        // --- FONCTION DATE NETTOYÉE ---
+        // --- GESTION DE LA MÉMOIRE LOCALE ---
+        function sauvegarderDraft(id) {
+            const input = document.getElementById(id);
+            const val = input.type === 'checkbox' ? input.checked : input.value;
+            localStorage.setItem(id, val);
+        }
+
+        function chargerDrafts() {
+            document.querySelectorAll('.data-input').forEach(input => {
+                const saved = localStorage.getItem(input.id);
+                if (saved !== null) {
+                    if (input.type === 'checkbox') input.checked = (saved === 'true');
+                    else input.value = saved;
+                }
+            });
+        }
+
+        function effacerDraftsTab(type) {
+            Object.keys(localStorage).forEach(key => {
+                if (key.startsWith(`input_${type}_`)) localStorage.removeItem(key);
+            });
+        }
+
         function formaterDate(str) {
             if(!str) return "-";
-            // On prend la première partie avant l'espace (pour JJ/MM/AAAA)
-            // Ou on nettoie le format ISO de Google (AAAA-MM-JJThh:mm:ssZ)
-            let d = str.split(' ')[0];
-            if(d.includes('T')) d = d.split('T')[0].split('-').reverse().join('/');
-            return d;
+            try {
+                if(str.includes('T')) return new Date(str).toLocaleDateString('fr-FR');
+                if(str.includes('/')) return str.split(' ')[0];
+                return str;
+            } catch(e) { return str; }
         }
 
         async function chargerHistorique() {
-            const thead = document.getElementById('hist-thead');
-            const tbody = document.getElementById('hist-tbody');
-            tbody.innerHTML = "<tr><td colspan='10' style='padding:20px;'>Chargement des données...</td></tr>";
-            
+            const thead = document.getElementById('hist-thead'), tbody = document.getElementById('hist-tbody');
+            tbody.innerHTML = "<tr><td colspan='10'>Chargement...</td></tr>";
             try {
                 const resp = await fetch(SCRIPT_URL + "?getLogs=true");
                 const logs = await resp.json();
                 const analyses = logs.filter(l => (l.rapport === 'anal' || l.Rapport === 'anal')).reverse().slice(0, 15);
-
-                if (analyses.length === 0) {
-                    tbody.innerHTML = "<tr><td colspan='10'>Aucune analyse trouvée.</td></tr>";
-                    return;
-                }
+                if (analyses.length === 0) { tbody.innerHTML = "<tr><td colspan='10'>Aucune donnée.</td></tr>"; return; }
 
                 let structure = {};
                 analyses.forEach(log => {
@@ -174,70 +153,54 @@
                     });
                 });
 
-                let htmlHead1 = `<tr><th rowspan="2" class="head-champ date-cell">DATE</th>`;
-                let htmlHead2 = `<tr>`;
-                let columnOrder = [];
-
+                let htmlH1 = `<tr><th rowspan="2" class="head-champ date-cell">DATE</th>`, htmlH2 = `<tr>`, order = [];
                 Object.keys(structure).forEach(bloc => {
                     let champs = Array.from(structure[bloc]);
-                    htmlHead1 += `<th colspan="${champs.length}" class="head-bloc">${bloc}</th>`;
-                    champs.forEach(champ => {
-                        htmlHead2 += `<th class="head-champ">${champ}</th>`;
-                        columnOrder.push(`${bloc}_${champ}`);
-                    });
+                    htmlH1 += `<th colspan="${champs.length}" class="head-bloc">${bloc}</th>`;
+                    champs.forEach(champ => { htmlH2 += `<th class="head-champ">${champ}</th>`; order.push(`${bloc}_${champ}`); });
                 });
-                
-                thead.innerHTML = htmlHead1 + "</tr>" + htmlHead2 + "</tr>";
-
+                thead.innerHTML = htmlH1 + "</tr>" + htmlH2 + "</tr>";
                 tbody.innerHTML = analyses.map(log => {
-                    // Application du format propre ici
-                    let datePropre = formaterDate(log.date || log.Date);
-                    return `<tr><td class="date-cell">${datePropre}</td>` + 
-                           columnOrder.map(col => `<td>${log[col] || '-'}</td>`).join('') + `</tr>`;
+                    const d = formaterDate(log.date || log.Date);
+                    return `<tr><td class="date-cell">${d}</td>` + order.map(c => `<td>${log[c] || '-'}</td>`).join('') + `</tr>`;
                 }).join('');
-
             } catch (e) { tbody.innerHTML = "<tr><td colspan='10'>Erreur réseau.</td></tr>"; }
-        }
-
-        async function synchroniserConfig() {
-            document.getElementById('loading-overlay').style.display = 'flex';
-            try {
-                await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: "saveConfig", config: configData }) });
-                render();
-            } catch (e) { alert("Erreur Cloud."); }
-            finally { document.getElementById('loading-overlay').style.display = 'none'; }
-        }
-
-        async function ajouterPointVersGoogle() {
-            const bloc = document.getElementById('cfg-bloc').value;
-            const champ = document.getElementById('cfg-champ').value;
-            const format = document.getElementById('cfg-format').value;
-            if(!bloc || !champ) return;
-            configData.push({ type: activeTab, bloc, champ, format });
-            await synchroniserConfig();
-            document.getElementById('cfg-champ').value = "";
-        }
-
-        async function supprimerPoint(bloc, champ) {
-            if(confirm(`Supprimer "${champ}" ?`)) {
-                configData = configData.filter(i => !(i.type === activeTab && i.bloc === bloc && i.champ === champ));
-                await synchroniserConfig();
-            }
         }
 
         async function envoyerDonnees() {
             const btn = document.getElementById('btn-send');
             let payload = { action: "data", rapport: activeTab, date: new Date().toLocaleDateString('fr-FR') };
-            let hasData = false;
+            let ok = false;
             document.querySelectorAll('.data-input').forEach(i => {
-                const val = i.type === 'checkbox' ? (i.checked ? "OK" : "") : i.value;
-                if(val !== "") { payload[i.dataset.group + "_" + i.dataset.label] = val; hasData = true; }
+                const v = i.type === 'checkbox' ? (i.checked ? "OK" : "") : i.value;
+                if(v !== "") { payload[i.dataset.group + "_" + i.dataset.label] = v; ok = true; }
             });
-            if(!hasData) return alert("Saisissez une valeur.");
+            if(!ok) return alert("Le formulaire est vide.");
             btn.disabled = true;
-            await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-            alert("✅ Envoyé !");
+            try {
+                await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+                alert("✅ Transmis au Google Sheet !");
+                effacerDraftsTab(activeTab); // On vide la mémoire locale du téléphone APRES l'envoi réussi
+                location.reload();
+            } catch (e) { alert("Erreur d'envoi."); btn.disabled = false; }
+        }
+
+        async function ajouterPointVersGoogle() {
+            const b = document.getElementById('cfg-bloc').value, c = document.getElementById('cfg-champ').value, f = document.getElementById('cfg-format').value;
+            if(!b || !c) return;
+            configData.push({ type: activeTab, bloc: b, champ: c, format: f });
+            document.getElementById('loading-overlay').style.display = 'flex';
+            await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: "saveConfig", config: configData }) });
             location.reload();
+        }
+
+        async function supprimerPoint(bloc, champ) {
+            if(confirm("Supprimer ?")) {
+                configData = configData.filter(i => !(i.type === activeTab && i.bloc === bloc && i.champ === champ));
+                document.getElementById('loading-overlay').style.display = 'flex';
+                await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: "saveConfig", config: configData }) });
+                location.reload();
+            }
         }
 
         function switchTab(t) {
@@ -247,7 +210,6 @@
             if(t === 'hist') {
                 document.getElementById('tab-saisie').style.display = 'none';
                 document.getElementById('tab-historique').style.display = 'block';
-                document.getElementById('current-tab-name').innerText = "📜 Historique Labo";
                 chargerHistorique();
             } else {
                 document.getElementById('tab-saisie').style.display = 'block';
@@ -256,11 +218,7 @@
             }
         }
 
-        function toggleConfig() {
-            const p = document.getElementById('config-panel');
-            p.style.display = p.style.display === 'block' ? 'none' : 'block';
-        }
-
+        function toggleConfig() { const p = document.getElementById('config-panel'); p.style.display = p.style.display === 'block' ? 'none' : 'block'; }
         init();
     </script>
 </body>
